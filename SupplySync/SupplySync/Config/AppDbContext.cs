@@ -1,6 +1,13 @@
-﻿namespace SupplySync.Config
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SupplySync.Config
 {
-    public class AppDbContext
-    {
-    }
+	public class AppDbContext : DbContext
+	{
+		public AppDbContext(DbContextOptions options) : base(options)
+		{
+		}
+
+
+	}
 }
