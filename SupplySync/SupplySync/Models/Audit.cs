@@ -31,7 +31,7 @@ namespace SupplySync.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation
-        //[ForeignKey(nameof(ComplianceOfficerID))]
-        //public virtual User ComplianceOfficer { get; set; } = default!;
+        [ForeignKey(nameof(ComplianceOfficerID))]
+        public virtual User ComplianceOfficer { get; set; } = default!;
     }
 }
