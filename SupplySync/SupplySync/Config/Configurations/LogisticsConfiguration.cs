@@ -8,9 +8,14 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<PurchaseOrder> builder)
         {
+            builder.HasKey(x => x.POID);
+            builder.Property(x => x.POID)
+                   .ValueGeneratedOnAdd();
+
             builder.Property(x => x.Item).IsRequired();
 
             builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
@@ -28,9 +33,13 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Delivery> builder)
         {
+            builder.HasKey(x => x.DeliveryID);
+            builder.Property(x => x.DeliveryID)
+                   .ValueGeneratedOnAdd();
             builder.Property(x => x.Item).IsRequired();
 
             builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
