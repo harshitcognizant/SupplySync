@@ -26,7 +26,10 @@ namespace SupplySync.Models
         public int Quantity { get; set; }
 
         [Required]
-        public POStatus Status { get; set; } 
+        public POStatus Status { get; set; }
+
+        public bool IsDeleted { get; set; }
+
         public DateTime CreatedAt { get; set; } 
         public DateTime? UpdatedAt { get; set; }        
         public virtual ICollection<Delivery> Deliveries { get; set; } 

@@ -8,13 +8,18 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
+            builder.HasKey(x => x.UserID);
+            builder.Property(x => x.UserID)
+                   .ValueGeneratedOnAdd();
+
             builder.Property(x => x.Name).IsRequired().HasMaxLength(150);
+            builder.Property(x => x.Password).IsRequired().HasMaxLength(255);
 
             // Map Email as a shadow property because the model's Email is private
             builder.Property<string>("Email").IsRequired().HasMaxLength(100);
 
             builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
-            builder.Property(x => x.IsActive).HasDefaultValue(true);
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
         }
@@ -24,6 +29,9 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Role> builder)
         {
+            builder.HasKey(x => x.RoleID);
+            builder.Property(x => x.RoleID)
+                   .ValueGeneratedOnAdd();
             builder.Property(x => x.RoleType).HasConversion<string>().HasMaxLength(30);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");

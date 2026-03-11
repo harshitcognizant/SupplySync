@@ -30,6 +30,8 @@ namespace SupplySync.Models
         public int Quantity { get; set; }
 
         [Required]
+
+        public bool IsDeleted { get; set; }
         public DeliveryStatus Status { get; set; } 
         public DateTime CreatedAt { get; set; } 
         public DateTime? UpdatedAt { get; set; } 

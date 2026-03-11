@@ -34,6 +34,11 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Report> builder)
         {
+            builder.HasKey(x => x.ReportID);
+            builder.Property(x => x.ReportID)
+                   .ValueGeneratedOnAdd();
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+
             builder.Property(x => x.Scope).HasConversion<string>().HasMaxLength(20);
             builder.Property(x => x.Metrics).IsRequired();
 
