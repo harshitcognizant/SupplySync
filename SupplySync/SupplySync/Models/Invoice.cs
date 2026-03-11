@@ -1,6 +1,7 @@
 ﻿using SupplySync.Constants.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.Eventing.Reader;
 
 namespace SupplySync.Models
 {
@@ -31,6 +32,8 @@ namespace SupplySync.Models
         public InvoiceStatus Status { get; set; }
         public DateTime CreatedAt { get; set; } 
         public DateTime? UpdatedAt { get; set; } 
+
+        public bool IsDeleted { get; set; }
 
     }
 }

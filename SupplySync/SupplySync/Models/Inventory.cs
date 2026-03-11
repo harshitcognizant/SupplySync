@@ -21,8 +21,11 @@ namespace SupplySync.Models
 
 			[Required]
 			public DateOnly DateAdded { get; set; }
-			
+
 			[Required]
+			public bool IsDeleted { get; set; }
+
+		[Required]
  			public InventoryStatus Status { get; set; }
 			public DateTime CreatedAt { get; set; }  
 			public DateTime? UpdatedAt { get; set; }

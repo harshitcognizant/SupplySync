@@ -1,4 +1,5 @@
-﻿using SupplySync.Constants.Enums;
+﻿using Microsoft.AspNetCore.Components.Web;
+using SupplySync.Constants.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -24,7 +25,9 @@ namespace SupplySync.Models
         public PaymentStatus Status { get; set; }
 
         public DateTime CreatedAt { get; set; } 
-        public DateTime? UpdatedAt { get; set; } 
+        public DateTime? UpdatedAt { get; set; }
+
+        public bool IsDeleted { get; set; }
 
 
     }

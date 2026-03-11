@@ -26,6 +26,9 @@ namespace SupplySync.Models
 			[Required]
 			public ReceiptStatus Status { get; set; }
 
+			[Required]
+			public bool IsDeleted { get; set; }
+
 			public DateTime CreatedAt { get; set; } 
 			public DateTime? UpdatedAt { get; set; }
 			public virtual Warehouse Warehouse { get; set; } 

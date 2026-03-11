@@ -8,6 +8,11 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Audit> builder)
         {
+            builder.HasKey(x => x.AuditID);
+            builder.Property(x => x.AuditID)
+                   .ValueGeneratedOnAdd();
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+
             builder.Property(x => x.Scope).IsRequired().HasMaxLength(200);
 
             // Enum as string
@@ -57,6 +62,11 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<ComplianceRecord> builder)
         {
+            builder.HasKey(x => x.ComplianceID);
+            builder.Property(x => x.ComplianceID)
+                   .ValueGeneratedOnAdd();
+            builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+
             builder.Property(x => x.Type).HasConversion<string>().HasMaxLength(30);
             builder.Property(x => x.Result).HasConversion<string>().HasMaxLength(20);
 

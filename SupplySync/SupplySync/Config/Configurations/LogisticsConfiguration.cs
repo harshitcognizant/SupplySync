@@ -61,9 +61,12 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Inventory> builder)
         {
-            builder.Property(x => x.Item).IsRequired();
-
-            builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+			builder.HasKey(x => x.InventoryID);
+			builder.Property(x => x.InventoryID)
+				   .ValueGeneratedOnAdd();
+			builder.Property(x => x.Item).IsRequired();
+			builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+			builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             // DateOnly -> date

@@ -6,9 +6,15 @@ namespace SupplySync.Config.Configurations
 {
     public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
     {
+
         public void Configure(EntityTypeBuilder<Warehouse> builder)
         {
-            builder.Property(x => x.Location).IsRequired();
+			builder.HasKey(x => x.WarehouseID);
+			builder.Property(x => x.WarehouseID)
+				   .ValueGeneratedOnAdd();
+
+			builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+			builder.Property(x => x.Location).IsRequired();
             builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
         }
@@ -18,11 +24,15 @@ namespace SupplySync.Config.Configurations
     {
         public void Configure(EntityTypeBuilder<Receipt> builder)
         {
-            builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+			builder.HasKey(x => x.ReceiptID);
+			builder.Property(x => x.ReceiptID)
+				   .ValueGeneratedOnAdd();
+			builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+			builder.Property(x => x.IsDeleted).HasDefaultValue(false);
 
-            // DateOnly -> date
-            builder.Property(x => x.Date)
+			// DateOnly -> date
+			builder.Property(x => x.Date)
                    .HasConversion(
                         v => v.ToDateTime(TimeOnly.MinValue),
                         v => DateOnly.FromDateTime(v))

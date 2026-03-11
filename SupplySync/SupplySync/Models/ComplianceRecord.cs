@@ -25,8 +25,9 @@ namespace SupplySync.Models
         public DateOnly Date { get; set; } // maps to DATE
 
         public string? Notes { get; set; } // text
+        public bool IsDeleted { get; set; }
 
-         public DateTime CreatedAt { get; set; } 
+        public DateTime CreatedAt { get; set; } 
 
         public DateTime? UpdatedAt { get; set; }
 
