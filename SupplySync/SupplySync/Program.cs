@@ -14,15 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDb")));
 
-<<<<<<< HEAD
+
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 
-=======
+
 // --------------------
 // AUTOMAPPER
 // --------------------
->>>>>>> 20bd240adc0c13a000aecedd79c55df8786a01cb
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // --------------------
