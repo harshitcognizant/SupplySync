@@ -29,6 +29,7 @@ namespace SupplySync.Config.Configurations
 
 
             builder.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            builder.Property(x => x.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             builder.HasOne(x => x.ComplianceOfficer)
                    .WithMany()

@@ -1,4 +1,4 @@
-﻿namespace SupplySync.DTOs
+﻿namespace SupplySync.DTOs.Audit
 {
     public class CreateAuditDto
     {

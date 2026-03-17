@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using SupplySync.DTOs;
+using SupplySync.DTOs.Audit;
 using SupplySync.Models;
 using SupplySync.Repositories.Interfaces;
 using SupplySync.Services.Interfaces;

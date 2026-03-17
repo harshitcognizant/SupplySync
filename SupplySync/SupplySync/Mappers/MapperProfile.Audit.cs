@@ -1,13 +1,12 @@
-﻿using AutoMapper;
-using SupplySync.DTOs;
+﻿using SupplySync.Constants.Enums;
+using SupplySync.DTOs.Audit;
 using SupplySync.Models;
-using SupplySync.Constants.Enums;
 
 namespace SupplySync.Mappers
 {
-    public class AuditProfile : Profile
+    public partial class MapperProfile
     {
-        public AuditProfile()
+        private void ConfigureAuditMappings()
         {
             CreateMap<CreateAuditDto, Audit>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => ConvertStatus(src.Status)))

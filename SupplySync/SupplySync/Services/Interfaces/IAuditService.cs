@@ -1,4 +1,4 @@
-﻿using SupplySync.DTOs;
+﻿using SupplySync.DTOs.Audit;
 using SupplySync.Models;
 
 namespace SupplySync.Services.Interfaces

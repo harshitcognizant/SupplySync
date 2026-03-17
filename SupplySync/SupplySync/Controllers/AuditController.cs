@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SupplySync.DTOs;
+using SupplySync.DTOs.Audit;
 using SupplySync.Services.Interfaces;
 
 namespace SupplySync.Controllers
