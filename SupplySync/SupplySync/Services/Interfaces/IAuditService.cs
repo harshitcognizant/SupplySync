@@ -1,10 +1,19 @@
 ﻿using SupplySync.DTOs.Audit;
-using SupplySync.Models;
 
 namespace SupplySync.Services.Interfaces
 {
     public interface IAuditService
     {
-        Task<int> CreateAuditAsync(CreateAuditDto dto);
+        Task<int> CreateAsync(CreateAuditRequestDto dto);
+        Task<AuditResponseDto?> GetByIdAsync(int auditId);
+        Task<AuditResponseDto?> UpdateAsync(int auditId, UpdateAuditRequestDto dto);
+        Task<bool> DeleteAsync(int auditId);
+
+        Task<List<AuditListResponseDto>> ListAsync(
+            int? complianceOfficerId,
+            string? status,
+            DateOnly? fromDate,
+            DateOnly? toDate
+        );
     }
 }
