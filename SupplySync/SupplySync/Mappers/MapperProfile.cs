@@ -8,11 +8,13 @@ namespace SupplySync.Mappers
         {
             // Initialize mappings for each domain/model
             ConfigureAuditMappings();
-
-            ConfigureFinanceMappings();
-
             ConfigureComplianceRecordMappings();
             ConfigureReportMappings();
+
+            ConfigureVendorMappings();
+            ConfigureContractMappings();
+
+            ConfigureFinanceMappings();
 
         }
     }

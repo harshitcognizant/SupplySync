@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SupplySync.Constants.Enums;
 using SupplySync.Models;
 
 namespace SupplySync.Config.Configurations
@@ -12,7 +13,7 @@ namespace SupplySync.Config.Configurations
 			builder.Property(x => x.DocumentID)
 				   .ValueGeneratedOnAdd();
 			builder.Property(x => x.DocType).HasConversion<string>().HasMaxLength(30);
-            builder.Property(x => x.VerificationStatus).HasConversion<string>().HasMaxLength(20);
+            builder.Property(x => x.VerificationStatus).HasConversion<string>().HasMaxLength(20).HasDefaultValue(VendorDocumentVerificationStatus.Pending);
 			builder.Property(x => x.IsDeleted).HasDefaultValue(false);
 			builder.Property(x => x.FileURI).IsRequired();
 
