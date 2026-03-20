@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SupplySync.Middleware
 {
-    public class ErrorHandlingMiddleware
-    {
+	public class ErrorHandlingMiddleware
+	{
 
 		private readonly RequestDelegate _next;
 		private readonly ILogger<ErrorHandlingMiddleware> _logger;
