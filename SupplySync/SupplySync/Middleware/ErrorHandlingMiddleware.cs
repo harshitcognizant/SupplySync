@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace SupplySync.Middleware
 {
@@ -50,6 +51,7 @@ namespace SupplySync.Middleware
 				ArgumentException => HttpStatusCode.BadRequest,           // 400
 				InvalidOperationException => HttpStatusCode.Conflict,     // 409
 				UnauthorizedAccessException => HttpStatusCode.Unauthorized, // 401
+				DbUpdateException => HttpStatusCode.Conflict,
 				_ => HttpStatusCode.InternalServerError                   // 500 default
 			};
 		}

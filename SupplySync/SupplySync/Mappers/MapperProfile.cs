@@ -8,17 +8,17 @@ namespace SupplySync.Mappers
         {
             // Initialize mappings for each domain/model
             ConfigureAuditMappings();
-            ConfigureComplianceRecordMappings();
-            ConfigureReportMappings();
-
+			ConfigureUserMappings();
+			ConfigureRoleMappings();
+			ConfigureUserRoleMappings();
+			ConfigureComplianceRecordMappings();
+			ConfigureReportMappings();
+			ConfigureAuditLogMappings();
+			ConfigureNotificationMappings();
             ConfigureInvoiceMappings();
             ConfigurePaymentMappings();
-
-
             ConfigureVendorMappings();
             ConfigureContractMappings();
-
-
         }
     }
 }
