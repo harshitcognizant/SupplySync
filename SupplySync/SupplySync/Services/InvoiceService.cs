@@ -2,6 +2,7 @@
 using SupplySync.Constants.Enums;
 using SupplySync.DTOs.Finance;
 using SupplySync.Models;
+using SupplySync.Repositories;
 using SupplySync.Repositories.Interfaces;
 using SupplySync.Services.Interfaces;
 
@@ -11,14 +12,21 @@ namespace SupplySync.Services
     {
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly IMapper _mapper;
+        private readonly IPurchaseOrderRepository _purchaseOrderRepository;
 
-        public InvoiceService(IInvoiceRepository invoiceRepository, IMapper mapper)
+        public InvoiceService(IInvoiceRepository invoiceRepository, IPurchaseOrderRepository purchaseOrderRepository, IMapper mapper)
         {
             _invoiceRepository = invoiceRepository;
+            _purchaseOrderRepository = purchaseOrderRepository;
             _mapper = mapper;
         }
         public async Task<int> CreateInvoiceAsync(CreateInvoiceRequestDto dto)
         {
+            var po = await _purchaseOrderRepository.GetByIdAsync(dto.POID);
+            if (po == null) throw new KeyNotFoundException("Purchase Order not found.");
+
+            if (dto.Amount <= 0) throw new ArgumentException("Invoice amount must be greater than zero.");
+
             var invoice = _mapper.Map<Invoice>(dto);
             var created = await _invoiceRepository.InsertAsync(invoice);
             return created.InvoiceId;
@@ -32,10 +40,13 @@ namespace SupplySync.Services
 
             if (!Enum.TryParse<InvoiceStatus>(dto.Status, true, out var validatedStatus))
             {
-                // This is the "Better Logic" - we stop the process and complain
                 throw new ArgumentException($"'{dto.Status}' is not a valid invoice status. " +
                                             $"Allowed: Submitted, UnderReview, Approved, Rejected, Paid.");
             }
+
+            if (existing.Status == InvoiceStatus.Rejected && validatedStatus == InvoiceStatus.Approved)
+                throw new InvalidOperationException("Rejected invoices cannot be approved.");
+
             _mapper.Map(dto, existing);
             existing.Status = validatedStatus;
             await _invoiceRepository.UpdateAsync(existing);

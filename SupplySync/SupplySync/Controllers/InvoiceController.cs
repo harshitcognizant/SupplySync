@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SupplySync.DTOs.Finance;
 using SupplySync.Services.Interfaces;
 
@@ -16,14 +17,15 @@ namespace SupplySync.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "VendorUser")]  // Vendor submits invoice
         public async Task<IActionResult> CreateInvoice([FromBody] CreateInvoiceRequestDto dto)
         {
-            if (dto.Amount <= 0) return BadRequest("Amount must be greater than zero.");
             var id = await _invoiceService.CreateInvoiceAsync(dto);
             return Ok(new{ Message = "Invoice submitted successfully", InvoiceID = id });
         }
 
         [HttpPut("{invoiceId}")]
+        [Authorize(Roles = "FinanceOfficer,Admin")] // Finance approves/rejects invoice
         public async Task<IActionResult> UpdateInvoice(int invoiceId, [FromBody] UpdateInvoiceRequestDto dto)
         {
             
@@ -37,6 +39,7 @@ namespace SupplySync.Controllers
         
 
         [HttpGet("{invoiceId}")]
+        [Authorize(Roles = "VendorUser,FinanceOfficer,ProcurementOfficer,ComplianceOfficer,Admin")]
         public async Task<IActionResult> GetInvoice(int invoiceId)
         {
             var response = await _invoiceService.GetInvoiceByIdAsync(invoiceId);
@@ -44,6 +47,7 @@ namespace SupplySync.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "FinanceOfficer,ProcurementOfficer,ComplianceOfficer,Admin")]
         public async Task<IActionResult> ListInvoices()
         {
             var response = await _invoiceService.GetInvoiceListAsync();

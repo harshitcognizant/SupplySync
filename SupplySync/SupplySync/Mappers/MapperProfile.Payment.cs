@@ -23,11 +23,11 @@ namespace SupplySync.Mappers
             CreateMap<Payment, PaymentResponseDto>()
                 .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method.ToString()))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("dd-MM-yyyy")));
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.Date)));
             //Get All
-            CreateMap<Payment,PaymentListResponseDto>()
+            CreateMap<Payment, PaymentListResponseDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("dd-MM-yyyy")));
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.Date)));
 
         }
     }
