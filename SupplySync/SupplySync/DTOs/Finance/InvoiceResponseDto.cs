@@ -7,7 +7,7 @@
         public int VendorId { get; set; }
         public string VendorName { get; set; }
         public decimal Amount { get; set; }
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

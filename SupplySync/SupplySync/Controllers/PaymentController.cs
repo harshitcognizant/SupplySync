@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SupplySync.Services.Interfaces;
 using SupplySync.DTOs.Finance;
+using SupplySync.Services.Interfaces;
 namespace SupplySync.Controllers
 {
     [Route("api/[controller]")]
@@ -15,21 +16,23 @@ namespace SupplySync.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "FinanceOfficer")]        // Finance creates payment
         public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentRequestDto dto)
         {
-            if(dto.Amount <= 0) return BadRequest("Amount must be greater than zero.");
             var id = await _paymentService.CreatePaymentAsync(dto);
             return Ok(new { Message = "Payment recorded", PaymentId = id });
         }
 
         [HttpPut("{paymentId}")]
+        [Authorize(Roles = "FinanceOfficer")]       // Finance updates payment
         public async Task<IActionResult> UpdatePayment(int paymentId, [FromBody] UpdatePaymentRequestDto dto)
         {
             await _paymentService.UpdatePaymentAsync(paymentId, dto);
-            return Ok(new { Message = "Payment updated" });
+            return Ok(new { Message = "Payment updated successfully" , PaymentId = paymentId });
         }
 
         [HttpGet("{paymentId}")]
+        [Authorize(Roles = "VendorUser,FinanceOfficer,ProcurementOfficer,ComplianceOfficer,Admin")]  // Read access for multiple roles
         public async Task<IActionResult> GetPaymentById(int paymentId)
         {
             var payment = await _paymentService.GetPaymentByIdAsync(paymentId);
@@ -39,6 +42,7 @@ namespace SupplySync.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "FinanceOfficer,ComplianceOfficer,Admin")]
         public async Task<IActionResult> GetAllPayments()
         {
             var payments = await _paymentService.GetAllPaymentsAsync();
