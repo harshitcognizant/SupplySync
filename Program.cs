@@ -1,18 +1,20 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SupplySync.Config;
+using SupplySync.Middleware;
+using SupplySync.Models;
+using SupplySync.Repositories;
+using SupplySync.Repositories.Interfaces;
+using SupplySync.Security;
+using SupplySync.Services;
+using SupplySync.Services.Interfaces;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using SupplySync.Config;
-using SupplySync.Middleware;
-using SupplySync.Models; 
-using SupplySync.Repositories;
-using SupplySync.Repositories.Interfaces;
-using SupplySync.Services;
-using SupplySync.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+ 
 var builder = WebApplication.CreateBuilder(args);
 
 // --------------------
@@ -20,8 +22,6 @@ var builder = WebApplication.CreateBuilder(args);
 // --------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppDb")));
- 
-
 
 // --------------------
 // AUTOMAPPER
@@ -29,12 +29,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddOpenApi();
+
 // --------------------
 // REPOSITORIES
 // --------------------
 builder.Services.AddScoped<IComplianceRecordRepository, ComplianceRecordRepository>();
 builder.Services.AddScoped<IAuditRepository, AuditRepository>();
-builder.Services.AddScoped<IReportRepository, ReportRepository>(); 
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IVendorRepository, VendorRepository>();
@@ -49,7 +50,12 @@ builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
 builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+builder.Services.AddScoped<IVendorCategoryRepository, VendorCategoryRepository>();
+builder.Services.AddScoped<IApprovalWorkflowRepository, ApprovalWorkflowRepository>();
 
+
+// Register new vendor-application repository
+builder.Services.AddScoped<IVendorApplicationRepository, VendorApplicationRepository>();
 
 // --------------------
 // SERVICES
@@ -66,54 +72,62 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
-
+builder.Services.AddScoped<IVendorCategoryService, VendorCategoryService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-
+builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
-// --------------------
-// CONTROLLERS & API
-// --------------------
+// Register vendor-application service
+builder.Services.AddScoped<IVendorApplicationService, VendorApplicationService>();
 
-builder.Services
-	.AddControllers()
-	.AddJsonOptions(opts =>
-	{
-		opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-	});
+// Authorization: single-role requirement handler
+builder.Services.AddSingleton<IAuthorizationHandler, SingleRoleHandler>();
 
+builder.Services.AddControllers(options =>
+{
+    // Global: require authenticated users to have exactly one role.
+    var policy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .AddRequirements(new SingleRoleRequirement())
+        .Build();
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter(policy));
+})
+.AddJsonOptions(opts =>
+{
+    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
+// JWT Authentication (unchanged)
 builder.Services.AddAuthentication(options =>
 {
-	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-var key = builder.Configuration["Jwt:Key"];
-var issuer = builder.Configuration["Jwt:Issuer"];
-var audience = builder.Configuration["Jwt:Audience"];
+    var jwtSection = builder.Configuration.GetSection("Jwt");
+    var key = jwtSection["Key"] ?? throw new InvalidOperationException("Configuration error: 'Jwt:Key' is not set.");
+    var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Configuration error: 'Jwt:Issuer' is not set.");
+    var audience = jwtSection["Audience"] ?? throw new InvalidOperationException("Configuration error: 'Jwt:Audience' is not set.");
 
-options.TokenValidationParameters = new TokenValidationParameters
-{
-	ValidateIssuerSigningKey = true,
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key!)),
-	ValidateIssuer = true,
-	ValidIssuer = issuer,
-	ValidateAudience = true,
-	ValidAudience = audience,
-	ValidateLifetime = true,
-	ClockSkew = TimeSpan.FromSeconds(30),
-
-	// 👇 Important for [Authorize(Roles = "...")]
-	RoleClaimType = ClaimTypes.Role,
-	NameClaimType = ClaimTypes.NameIdentifier
-};
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+        ValidateAudience = true,
+        ValidAudience = audience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromSeconds(30),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.NameIdentifier
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -132,13 +146,10 @@ if (app.Environment.IsDevelopment())
 // --------------------
 // PIPELINE
 // --------------------
-
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
- 
 
 app.Run();
-

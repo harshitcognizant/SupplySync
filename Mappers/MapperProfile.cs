@@ -13,12 +13,12 @@ namespace SupplySync.Mappers
 			ConfigureUserRoleMappings();
 			ConfigureAuditLogMappings();
 			ConfigureNotificationMappings();
-            ConfigureComplianceRecordMappings();
+            ConfigureComplianceMappings();
             ConfigureReportMappings();
             ConfigureWarehouseMappings();
             ConfigureInventoryMappings();
             ConfigureReceiptMappings();
-
+            ConfigureVendorApplicationMappings();
 
             ConfigureInvoiceMappings();
             ConfigurePaymentMappings();

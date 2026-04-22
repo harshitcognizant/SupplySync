@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SupplySync.Config;
+using SupplySync.Constants.Enums;
 using SupplySync.DTOs.Vendor;
 using SupplySync.Models;
 using SupplySync.Repositories.Interfaces;
@@ -80,8 +81,14 @@ namespace SupplySync.Repositories
 			return await _appDbContext.VendorDocuments.Where(x => x.VendorID == vendorId).ToListAsync();
 
 		}
+        public async Task<List<Vendor>> ListByStatusAsync(VendorStatus status)
+        {
+            return await _appDbContext.Vendors
+                                      .Where(v => !v.IsDeleted && v.Status == status)
+                                      .OrderBy(v => v.Name)
+                                      .ToListAsync();
+        }
 
-
-	}
+    }
 
 }

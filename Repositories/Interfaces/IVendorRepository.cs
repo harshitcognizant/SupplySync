@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SupplySync.Constants.Enums;
 using SupplySync.DTOs;
 using SupplySync.DTOs.Vendor;
 using SupplySync.Models;
@@ -14,5 +15,7 @@ namespace SupplySync.Repositories.Interfaces
 		public Task<VendorDocument> CreateVendorDocument(VendorDocument newVendorDocument);
 		Task<List<VendorDocument>> GetAllVendorDocuments(int vendorId);
 		Task<List<Vendor>> GetAllVendorWithFilter(GetVendorFiltersRequestDto getVendorFiltersRequestDto);
-	}
+        Task<List<Vendor>> ListByStatusAsync(VendorStatus status);
+
+    }
 }

@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using SupplySync.Config;
 using SupplySync.Models;
 using SupplySync.Repositories.Interfaces;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SupplySync.Repositories
 {
@@ -74,6 +77,13 @@ namespace SupplySync.Repositories
                 query = query.Where(x => x.DateAdded <= toDate.Value);
 
             return await query.OrderByDescending(x => x.DateAdded).ToListAsync();
+        }
+
+        public async Task<Inventory?> GetByWarehouseAndItemAsync(int warehouseId, string item)
+        {
+            return await _context.Inventories
+                .Where(i => !i.IsDeleted && i.WarehouseID == warehouseId && i.Item == item)
+                .FirstOrDefaultAsync();
         }
     }
 }

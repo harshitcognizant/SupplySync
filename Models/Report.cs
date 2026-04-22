@@ -12,14 +12,14 @@ namespace SupplySync.Models
         public int ReportID { get; set; }
 
         [Required]
-        public ReportScope Scope { get; set; } // maps to varchar
+        public ReportScope Scope { get; set; }
 
         [Required]
-        public string Metrics { get; set; }   
+        public string Metrics { get; set; } = string.Empty; // Initialized to avoid nulls
 
         public bool IsDeleted { get; set; }
-        public DateTime GeneratedDate { get; set; }  
-        public DateTime CreatedAt { get; set; } 
+        public DateTime GeneratedDate { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
 

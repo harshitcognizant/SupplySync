@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SupplySync.Constants.Enums;
 
@@ -23,13 +23,12 @@ namespace SupplySync.Models
         [Required]
         public DateTime Date { get; set; }
 
-        [Required]
-        public string Item { get; set; } 
+        // legacy single-item fields kept for compatibility
+        public string? Item { get; set; } 
+        public int? Quantity { get; set; }
 
-        [Required]
-        public int Quantity { get; set; }
-
-        [Required]
+        // New: JSON payload of items (array of { item, quantity })
+        public string? ItemsJson { get; set; }
 
         public bool IsDeleted { get; set; }
         public DeliveryStatus Status { get; set; } 

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SupplySync.Models;
 
 namespace SupplySync.Config
@@ -26,6 +26,13 @@ namespace SupplySync.Config
         public DbSet<Vendor> Vendors => Set<Vendor>();
         public DbSet<VendorDocument> VendorDocuments => Set<VendorDocument>();
         public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+
+        // NEW:
+        public DbSet<VendorCategoryConfig> VendorCategories => Set<VendorCategoryConfig>();
+        public DbSet<ApprovalWorkflow> ApprovalWorkflows => Set<ApprovalWorkflow>();
+        public DbSet<VendorApplication> VendorApplications => Set<VendorApplication>();
+
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

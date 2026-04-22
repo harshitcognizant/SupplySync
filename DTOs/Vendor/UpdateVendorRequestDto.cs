@@ -2,10 +2,10 @@
 
 namespace SupplySync.DTOs.Vendor
 {
-	public class UpdateVendorRequestDto
-	{
-		public string Name { get; set; }
-		public string ContactInfo { get; set; }
-		public VendorCategory Category { get; set; }
-	}
+    public class UpdateVendorRequestDto
+    {
+        public string Name { get; set; } = default!;
+        public string ContactInfo { get; set; } = default!;
+        public VendorCategory Category { get; set; }
+    }
 }

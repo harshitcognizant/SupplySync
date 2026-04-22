@@ -65,5 +65,40 @@ namespace SupplySync.Controllers
 
             return Ok(new { Message = "Report deleted" });
         }
+
+        [HttpGet("vendor-performance")]
+        public async Task<IActionResult> VendorPerformance([FromQuery] DateTime? fromUtc, [FromQuery] DateTime? toUtc, [FromQuery] int top = 50)
+                {
+                    var data = await _service.VendorPerformanceAsync(fromUtc, toUtc, top);
+                    return Ok(data);
+                }
+
+        [HttpGet("delivery-delays")]
+        public async Task<IActionResult> DeliveryDelays([FromQuery] DateTime? fromUtc, [FromQuery] DateTime? toUtc, [FromQuery] int max = 100)
+        {
+            var data = await _service.DeliveryDelaysAsync(fromUtc, toUtc, max);
+            return Ok(data);
+        }
+
+        [HttpGet("procurement-spending")]
+        public async Task<IActionResult> ProcurementSpending([FromQuery] DateTime fromUtc, [FromQuery] DateTime toUtc)
+        {
+            var data = await _service.TotalProcurementSpendingAsync(fromUtc, toUtc);
+            return Ok(data);
+        }
+
+        [HttpGet("inventory-levels")]
+        public async Task<IActionResult> InventoryLevels()
+        {
+            var data = await _service.InventoryLevelsAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("invoice-turnaround")]
+        public async Task<IActionResult> InvoiceTurnaround([FromQuery] DateTime? fromUtc, [FromQuery] DateTime? toUtc)
+        {
+            var data = await _service.InvoiceApprovalTurnaroundAsync(fromUtc, toUtc);
+            return Ok(data);
+        }
     }
 }

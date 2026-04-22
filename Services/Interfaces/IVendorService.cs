@@ -5,7 +5,7 @@ namespace SupplySync.Services.Interfaces
 {
 	public interface IVendorService
 	{
-		Task<VendorResponseDto> CreateVendor(CreateVendorRequestDto createVendorRequestDto);
+		Task<VendorResponseDto> CreateVendor(CreateVendorApplicationDocumentDto createVendorRequestDto);
 		Task<VendorDocumentResponseDto> CreateVendorDocument(CreateVendorDocumentRequestDto createVendorDocumentRequestDto);
 		Task<List<VendorDocumentResponseDto>> GetAllVendorDocument(int vendorId);
 		Task<List<VendorResponseDto>> GetAllVendorWithFilter(GetVendorFiltersRequestDto getVendorFiltersRequestDto);

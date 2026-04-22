@@ -4,7 +4,7 @@ namespace SupplySync.Services.Interfaces
 {
 	public interface IContractService
 	{
-		Task<ContractResponseDto> CreateContract(CreateContractRequestDto createContractRequestDto);
+		Task<ContractResponseDto> CreateContract(CreateContractRequestDto createContractRequestDto); 
 		Task<ContractTermResponseDto> CreateContractTerm(CreateContractTermRequestDto createContractTermRequestDto);
 		Task<List<ContractWithTermsResponseDto>> GetAllContractsByVendorId(int vendorId, ContractFiltersRequestDto contractFiltersRequestDto);
 		Task<List<ContractTermResponseDto>> GetAllContractTermByContractId(int contractId, ContractTermFiltersRequestDto contractTermFiltersRequestDto);

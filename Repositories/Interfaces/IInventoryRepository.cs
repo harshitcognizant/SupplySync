@@ -19,5 +19,8 @@ namespace SupplySync.Repositories.Interfaces
             DateOnly? fromDate,
             DateOnly? toDate
         );
+
+        // Find a single inventory record by warehouse + item (used when receiving goods)
+        Task<Inventory?> GetByWarehouseAndItemAsync(int warehouseId, string item);
     }
 }

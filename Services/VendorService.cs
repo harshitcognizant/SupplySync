@@ -47,7 +47,7 @@ namespace SupplySync.Services
 			return vendorResponseDtos;
 		}
 
-		public async Task<VendorResponseDto> CreateVendor(CreateVendorRequestDto createVendorRequestDto)
+		public async Task<VendorResponseDto> CreateVendor(CreateVendorApplicationDocumentDto createVendorRequestDto)
 		{
 			Vendor newVendor = _mapper.Map<Vendor>(createVendorRequestDto);
 			// after mapping we will get vendor

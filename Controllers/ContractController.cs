@@ -6,6 +6,7 @@ using SupplySync.Models;
 using SupplySync.Services;
 using SupplySync.Services.Interfaces;
 
+
 namespace SupplySync.Controllers
 {
 	[Route("api/[controller]")]
@@ -39,42 +40,47 @@ namespace SupplySync.Controllers
 			return Ok(contractResponseDto);
 		}
 
-		[Authorize(Roles = "VendorUser,Admin")]
-		[HttpPost("")]
-		public async Task<IActionResult> CreateContract([FromBody] CreateContractRequestDto createContractRequestDto)
-		{
-			ContractResponseDto contractResponseDto = await _contractService.CreateContract(createContractRequestDto);
-			return Ok(contractResponseDto);
-		}
+        [Authorize(Roles = "ProcurementOfficer,Admin")]
+        [HttpPost("")]
+        public async Task<IActionResult> CreateContract([FromBody] CreateContractRequestDto dto)
+        {
+            var result = await _contractService.CreateContract(dto);
+            return Ok(result);
+        }
 
-		[Authorize(Roles = "VendorUser,Admin")]
-		[HttpPut("{contractId}")]
-		public async Task<IActionResult> UpdateContract([FromRoute] int contractId, UpdateContractRequestDto updateContractRequestDto)
-		{
-			ContractResponseDto contractResponseDto = await _contractService.UpdateContract(contractId ,updateContractRequestDto);
-			return Ok();
-		}
+        // Allow ProcurementOfficer (and Admin) to update contracts
+        [Authorize(Roles = "ProcurementOfficer,Admin")]
+        [HttpPut("{contractId}")]
+        public async Task<IActionResult> UpdateContract([FromRoute] int contractId, [FromBody] UpdateContractRequestDto updateContractRequestDto)
+        {
+            var updated = await _contractService.UpdateContract(contractId, updateContractRequestDto);
+            return Ok(updated);
+        }
 
 
 
-		/// <summary>
-		/// Contract Terms endpoints
-		/// </summary>
+        /// <summary>
+        /// Contract Terms endpoints
+        /// </summary>
 
-		[Authorize(Roles = "VendorUser,Admin")]
-		[HttpPost("{contractId}/terms")]
-		public async Task<IActionResult> CreateContractTerm([FromBody] CreateContractTermRequestDto createContractTermRequestDto)
-		{
-			ContractTermResponseDto contractTermResponseDto = await _contractService.CreateContractTerm(createContractTermRequestDto);
-			return Ok(contractTermResponseDto);
-		}
+        [Authorize(Roles = "ProcurementOfficer,Admin")]
+        [HttpPost("{contractId}/terms")]
+        public async Task<IActionResult> CreateContractTerm([FromRoute] int contractId, [FromBody] CreateContractTermRequestDto createContractTermRequestDto)
+        {
+            // ensure the DTO contains contract id
+            createContractTermRequestDto.ContractID = contractId;
+            var contractTermResponseDto = await _contractService.CreateContractTerm(createContractTermRequestDto);
+            return Ok(contractTermResponseDto);
+        }
 
-		[Authorize]
+        [Authorize]
 		[HttpGet("{contractId}/terms")]
 		public async Task<IActionResult> GetAllContractTermByContractId([FromRoute] int contractId,[FromQuery] ContractTermFiltersRequestDto contractTermFiltersRequestDto)
 		{
 			List<ContractTermResponseDto> contractResponseDtos = await _contractService.GetAllContractTermByContractId(contractId, contractTermFiltersRequestDto);
 			return Ok(contractResponseDtos);
-		}
-	}
+		}    
+
+        
+    }
 }

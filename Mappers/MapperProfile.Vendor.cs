@@ -8,7 +8,7 @@ namespace SupplySync.Mappers
 		public void ConfigureVendorMappings()
 		{
 			// Create Vendor
-			CreateMap<CreateVendorRequestDto, Vendor>().ReverseMap();
+			CreateMap<CreateVendorApplicationRequestDto, Vendor>().ReverseMap();
 			CreateMap<VendorResponseDto, Vendor>().ReverseMap();
 
 			// Create Vendor Document
