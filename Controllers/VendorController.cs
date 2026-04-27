@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupplySync.DTOs.Vendor;
+using SupplySync.Security;
 using SupplySync.Services.Interfaces;
 
 namespace SupplySync.Controllers
@@ -16,6 +17,21 @@ namespace SupplySync.Controllers
         {
             _vendorService = vendorService;
             _vendorApplicationService = vendorApplicationService;
+        }
+
+
+        [Authorize(Roles = "VendorApplicant")]
+        [HttpPost("apply")]
+        public async Task<IActionResult> Apply([FromBody] CreateVendorApplicationRequestDto dto)
+        {
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized();
+
+            dto.UserID = userId.Value;
+
+            var created = await _vendorApplicationService.CreateApplicationAsync(dto);
+            return Ok(created);
         }
 
         // Existing endpoints kept as-is...
@@ -60,13 +76,13 @@ namespace SupplySync.Controllers
         /// <summary>
         /// Vendor self-signup: anonymous endpoint to apply.
         /// </summary>
-        [AllowAnonymous]
-        [HttpPost("apply")]
-        public async Task<IActionResult> Apply([FromBody] CreateVendorApplicationRequestDto dto)
-        {
-            var created = await _vendorApplicationService.CreateApplicationAsync(dto);
-            return Ok(created);
-        }
+        //[AllowAnonymous]
+        //[HttpPost("apply")]
+        //public async Task<IActionResult> Apply([FromBody] CreateVendorApplicationRequestDto dto)
+        //{
+        //    var created = await _vendorApplicationService.CreateApplicationAsync(dto);
+        //    return Ok(created);
+        //}
 
         [Authorize(Roles = "ProcurementOfficer,Admin")]
         [HttpGet("applications/{id}")]

@@ -82,8 +82,9 @@ namespace SupplySync.Repositories
         public async Task<Inventory?> GetByWarehouseAndItemAsync(int warehouseId, string item)
         {
             return await _context.Inventories
-                .Where(i => !i.IsDeleted && i.WarehouseID == warehouseId && i.Item == item)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(i => i.WarehouseID == warehouseId && 
+                i.Item == item && !i.IsDeleted
+                );
         }
     }
 }

@@ -26,8 +26,20 @@ namespace SupplySync.Controllers
 			return Ok(new { Message = "Inventory created", InventoryID = id });
 		}
 
-		// UPDATE
-		[Authorize(Roles = "WarehouseManager")]
+
+
+        [Authorize(Roles = "WarehouseManager")]
+        [HttpPost("issue")]
+        public async Task<IActionResult> IssueStock([FromBody] IssueInventoryRequestDto dto)
+        {
+            await _service.IssueStockAsync(dto);
+            return Ok(new { Message = "Stock issued successfully" });
+        }
+
+
+
+        // UPDATE
+        [Authorize(Roles = "WarehouseManager")]
 		[HttpPut("{inventoryId}")]
 		public async Task<IActionResult> Update(int inventoryId, [FromBody] UpdateInventoryRequestDto dto)
 		{

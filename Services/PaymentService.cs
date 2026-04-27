@@ -26,23 +26,28 @@ namespace SupplySync.Services
             var invoice = await _invoiceRepository.GetByIdAsync(dto.InvoiceId);
 
             if (invoice == null)
-                throw new Exception("Invoice not found.");
+                throw new Exception("Invoice not found");
 
             if (invoice.Status != InvoiceStatus.Approved)
-                throw new Exception("Payment allowed only for approved invoices.");
+                throw new Exception("Invoice must be approved");
+
+            var existingPayment = await _paymentRepository.GetByIdAsync(dto.InvoiceId);
+            if (existingPayment != null)
+                throw new Exception("Payment already exists");
 
             var payment = new Payment
             {
                 InvoiceId = dto.InvoiceId,
                 Amount = dto.Amount,
                 Date = dto.Date,
-                //Method = dto.Method
+                //Method = Enum.Parse<PaymentMethod>(dto, true),
                 Status = PaymentStatus.Success,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _paymentRepository.InsertAsync(payment);
 
+            // ✅ FINAL STATE CHANGE HERE ONLY
             invoice.Status = InvoiceStatus.Paid;
             await _invoiceRepository.UpdateAsync(invoice);
 

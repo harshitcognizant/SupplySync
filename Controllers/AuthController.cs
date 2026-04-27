@@ -1,6 +1,7 @@
 ﻿// /SupplySync/Controllers/AuthController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupplySync.Constants.Enums;
 using SupplySync.DTOs.User;
 using SupplySync.Repositories.Interfaces;
 using SupplySync.Services.Interfaces;
@@ -12,6 +13,7 @@ namespace SupplySync.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly IAuthService _authService;
+		
 		public AuthController(IAuthService authService)
 		{
 			_authService = authService;
@@ -38,7 +40,26 @@ namespace SupplySync.Controllers
 			});
 		}
 
-		[HttpPost("logout")]
+		[AllowAnonymous]
+		[HttpPost("vendor-signup")]
+		public async Task<IActionResult> VendorSignup([FromBody] CreateUserRequestDto dto)
+		{
+			dto.Status = UserStatus.Active;
+
+			var userId = await _authService.RegisterVendorApplicantAsync(dto);
+			
+			return Ok(new
+			{
+				Message = "vendor signup successfull , Please apply for vendor approval",
+				UserId = userId
+
+            }
+				);
+        }
+
+
+
+        [HttpPost("logout")]
 		[Authorize]
 		public async Task<IActionResult> Logout()
 		{

@@ -1,9 +1,12 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using SupplySync.Config;
 using SupplySync.Constants.Enums;
 using SupplySync.DTOs.Notification;
+using SupplySync.DTOs.UserRoles;
 using SupplySync.DTOs.Vendor;
 using SupplySync.Models;
+using Microsoft.EntityFrameworkCore;
 using SupplySync.Repositories;
 using SupplySync.Repositories.Interfaces;
 using SupplySync.Security;
@@ -12,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SupplySync.Services
 {
@@ -24,6 +28,8 @@ namespace SupplySync.Services
         private readonly IAuditLogService _auditLogService;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUserRoleService _userRoleService;
+        private readonly AppDbContext _context;
 
         public VendorApplicationService(
             INotificationDispatcher notificationDispatcher,
@@ -32,23 +38,36 @@ namespace SupplySync.Services
             INotificationService notificationService,
             IAuditLogService auditLogService,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IUserRoleService userRoleService,
+            AppDbContext context)
         {
             _notificationDispatcher = notificationDispatcher;
             _applicationRepo = applicationRepo;
             _vendorRepo = vendorRepo;
             _notificationService = notificationService;
+            _context = context;
             _auditLogService = auditLogService;
             _mapper = mapper;
+            _userRoleService = userRoleService;
             _httpContextAccessor = httpContextAccessor;
         }
 
         // ✅ CREATE APPLICATION
         public async Task<VendorApplicationResponseDto> CreateApplicationAsync(
-            CreateVendorApplicationRequestDto dto)
+     CreateVendorApplicationRequestDto dto)
         {
+            // ✅ HARD VALIDATION (NO BAD DATA EVER)
+            if (dto.UserID <= 0)
+                throw new InvalidOperationException("User must be logged in to apply as vendor.");
+
+            // ✅ Prevent duplicate applications
+            if (_context.VendorApplications.Any(x => x.UserId == dto.UserID && !x.IsDeleted))
+                throw new InvalidOperationException("Vendor application already exists for this user.");
+
             var application = new VendorApplication
             {
+                UserId = dto.UserID, // ✅ THIS FIXES EVERYTHING
                 Name = dto.Name,
                 ContactInfo = dto.ContactInfo,
                 Category = dto.Category,
@@ -66,30 +85,39 @@ namespace SupplySync.Services
 
             var createdApplication = await _applicationRepo.CreateAsync(application);
 
+            // ✅ Notify procurement
             await _notificationService.SendAsync(
-                new DTOs.Notification.CreateBulkNotificationRequestDto
+                new CreateBulkNotificationRequestDto
                 {
                     Message = $"New vendor application received: {createdApplication.Name}",
                     Category = NotificationCategory.System,
                     RoleTypes = new()
                     {
-                        RoleType.ProcurementOfficer
+                RoleType.ProcurementOfficer
                     }
                 });
 
+            // ✅ Audit log
             await _auditLogService.WriteAsync(
-                null,
+                dto.UserID,
                 null,
                 "VendorApplication.Submitted",
-                $"Application:{createdApplication.ApplicationID}");  
-            
-             await _notificationDispatcher.SendNotificationAsync(
-                SupplySync.Constants.Enums.NotificationEvent.VendorApplicationSubmitted,
-                new Dictionary<string, object> { ["VendorName"] = createdApplication.Name }
+                $"Application:{createdApplication.ApplicationID}");
+
+            // ✅ Template-based notification
+            await _notificationDispatcher.SendNotificationAsync(
+                NotificationEvent.VendorApplicationSubmitted,
+                new Dictionary<string, object>
+                {
+                    ["VendorName"] = createdApplication.Name
+                }
             );
 
             return _mapper.Map<VendorApplicationResponseDto>(createdApplication);
         }
+
+
+
 
         // ✅ LIST PENDING APPLICATIONS
         public async Task<List<VendorApplicationResponseDto>> ListPendingAsync()
@@ -110,48 +138,48 @@ namespace SupplySync.Services
         }
 
         // ✅ APPROVE APPLICATION
-        public async Task<VendorResponseDto?> ApproveApplicationAsync(int id)
+        public async Task<VendorResponseDto?> ApproveApplicationAsync(int applicationId)
         {
-            var app = await _applicationRepo.GetByIdAsync(id);
+            // 1️⃣ Load application
+            var app = await _context.VendorApplications
+                .FirstOrDefaultAsync(x => x.ApplicationID == applicationId);
 
-            // ✅ Guard clause – prevents double approval
             if (app == null || app.Status != VendorStatus.Pending)
                 return null;
 
-            // 1️⃣ Create Vendor from Application
-            var vendor = new Vendor
-            {
-                Name = app.Name,
-                ContactInfo = app.ContactInfo,
-                Category = app.Category,
-                Status = VendorStatus.Approved,
-                UserId= app.UserId,
-                CreatedAt = DateTime.UtcNow
-            };
+            if (app.UserId <= 0)
+                throw new InvalidOperationException("Vendor application is not linked to a valid user.");
 
-            await _vendorRepo.CreateVendor(vendor);
+            // 2️⃣ Prevent duplicate vendor
+            if (_context.Vendors.Any(v => v.UserId == app.UserId))
+                throw new InvalidOperationException("Vendor already exists for this user.");
 
-            // 2️⃣ Copy Documents
-            if (app.Documents != null)
-            {
-                foreach (var doc in app.Documents)
-                {
-                    await _vendorRepo.CreateVendorDocument(new VendorDocument
-                    {
-                        VendorID = vendor.VendorID,
-                        DocType = doc.DocType,
-                        FileURI = doc.FileURI,
-                        UploadedDate = DateTime.UtcNow,
-                        VerificationStatus = VendorDocumentVerificationStatus.Verified
-                    });
-                }
-            }
+            // 3️⃣ Create Vendor using AutoMapper
+            var vendor = _mapper.Map<Vendor>(app);
 
-            // 3️⃣ Update Application Status
+            vendor.Status = VendorStatus.Approved;
+            vendor.UserId = app.UserId;
+            vendor.CreatedAt = DateTime.UtcNow;
+
+            _context.Vendors.Add(vendor);
+
+            // 4️⃣ Update application status
             app.Status = VendorStatus.Approved;
-            await _applicationRepo.UpdateAsync(app);
+            _context.VendorApplications.Update(app);
 
-            // 4️⃣ Send Notification (SAFE)
+            // 5️⃣ Update user role (this MUST NOT call SaveChanges internally)
+            await _userRoleService.UpdateUserRoleAsync(
+                app.UserId,
+                new UpdateUserRoleRequestDto
+                {
+                    CurrentRoleType = RoleType.VendorApplicant,
+                    NewRoleType = RoleType.VendorUser
+                });
+
+            // ✅ SINGLE SAVE (THIS IS THE KEY FIX)
+            await _context.SaveChangesAsync();
+
+            // 6️⃣ Notification (non‑blocking)
             try
             {
                 await _notificationService.SendAsync(new CreateBulkNotificationRequestDto
@@ -161,14 +189,17 @@ namespace SupplySync.Services
                     RoleTypes = new List<RoleType> { RoleType.VendorUser }
                 });
             }
-            catch (Exception ex)
-            {
-                // ✅ Log error, but DO NOT fail approval
-                // _logger.LogError(ex, "Notification failed for vendor approval");
-            }
+            catch { }
 
             return _mapper.Map<VendorResponseDto>(vendor);
         }
+
+
+
+
+
+
+
 
         // ✅ REJECT APPLICATION
         public async Task<bool> RejectApplicationAsync(int applicationId, string reason)

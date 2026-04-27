@@ -16,5 +16,7 @@ namespace SupplySync.Services.Interfaces
             DateOnly? fromDate,
             DateOnly? toDate
         );
+
+        Task IssueStockAsync(IssueInventoryRequestDto dto);
     }
 }

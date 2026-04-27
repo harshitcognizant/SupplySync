@@ -67,6 +67,42 @@ namespace SupplySync.Services
 
             await _receiptRepository.InsertAsync(receipt);
 
+            //update
+
+            var inventory = await _inventoryRepository
+         .GetByWarehouseAndItemAsync(dto.WarehouseID, delivery.Item);
+
+            if (inventory == null)
+            {
+                // Create new inventory
+                inventory = new Inventory
+                {
+                    WarehouseID = dto.WarehouseID,
+                    Item = delivery.Item,
+                    Quantity = dto.Quantity,
+                    DateAdded = dto.Date,
+                    Status = InventoryStatus.InStock,
+                    CreatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                await _inventoryRepository.InsertAsync(inventory);
+            }
+            else
+            {
+                // Update existing inventory
+                inventory.Quantity += dto.Quantity;
+                inventory.UpdatedAt = DateTime.UtcNow;
+
+                await _inventoryRepository.UpdateAsync(inventory);
+            }
+
+            
+
+            delivery.Status = SupplySync.Constants.Enums.DeliveryStatus.Delivered;
+            await _deliveryRepository.UpdateAsync(delivery);
+
+
             return receipt.ReceiptID;
         }
 

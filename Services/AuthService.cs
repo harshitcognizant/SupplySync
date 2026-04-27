@@ -1,16 +1,17 @@
-﻿using System.Diagnostics.Contracts;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using SupplySync.Constants.Enums;
 using SupplySync.DTOs.Notification;
 using SupplySync.DTOs.User;
+using SupplySync.DTOs.UserRoles;
 using SupplySync.Models;
 using SupplySync.Repositories.Interfaces;
 using SupplySync.Services.Interfaces;
+using System.Diagnostics.Contracts;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SupplySync.Services
 {
@@ -22,14 +23,17 @@ namespace SupplySync.Services
         private readonly IAuditLogService _auditLogService;
         private readonly INotificationService _notificationService;
 		private readonly IHttpContextAccessor _httpContextAccessor;
-
-		public AuthService(
+		private readonly IUserService _userService;
+		private readonly IUserRoleService _userRoleService;
+        public AuthService(
             IUserRepository userRepository,
             IPasswordHasher<User> passwordHasher,
             IConfiguration config,
             IAuditLogService auditLogService,
             INotificationService notificationService,
-			IHttpContextAccessor httpContextAccessor)
+			IHttpContextAccessor httpContextAccessor,
+			IUserService userService,
+			IUserRoleService userRoleService)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
@@ -37,7 +41,23 @@ namespace SupplySync.Services
             _auditLogService = auditLogService;
             _notificationService = notificationService;
 			_httpContextAccessor = httpContextAccessor;
+			_userService= userService;
+			_userRoleService = userRoleService;
 		}
+
+
+        public async Task<int> RegisterVendorApplicantAsync(CreateUserRequestDto dto)
+        {
+            var userId = await _userService.CreateUserAsync(dto);
+
+            await _userRoleService.AssignRoleToUserAsync(
+                userId,
+                new CreateUserRoleRequestDto { RoleType = RoleType.VendorApplicant }
+            );
+
+            return userId;
+        }
+
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto dto)
         {

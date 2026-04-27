@@ -66,6 +66,24 @@ namespace SupplySync.Services
             return _mapper.Map<InventoryResponseDto>(inventory);
         }
 
+        public async Task IssueStockAsync(IssueInventoryRequestDto dto)
+        {
+            var inventory = await _inventoryRepository
+                .GetByWarehouseAndItemAsync(dto.WarehouseID, dto.Item);
+
+            if (inventory == null)
+                throw new Exception("Item not found in inventory.");
+
+            if (inventory.Quantity < dto.Quantity)
+                throw new Exception("Not enough stock.");
+
+            // 🔥 Reduce stock
+            inventory.Quantity -= dto.Quantity;
+            inventory.UpdatedAt = DateTime.UtcNow;
+
+            await _inventoryRepository.UpdateAsync(inventory);
+        }
+
         public async Task<InventoryResponseDto?> UpdateAsync(int inventoryId, UpdateInventoryRequestDto dto)
         {
             if (inventoryId <= 0)

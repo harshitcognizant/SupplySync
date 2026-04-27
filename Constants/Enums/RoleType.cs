@@ -7,6 +7,7 @@
 		VendorUser = 3,
 		WarehouseManager = 4,
 		FinanceOfficer = 5,
-		ComplianceOfficer = 6
-	}
+		ComplianceOfficer = 6,
+        VendorApplicant = 7
+    }
 }

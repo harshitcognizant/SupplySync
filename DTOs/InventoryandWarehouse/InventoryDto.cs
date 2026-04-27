@@ -4,6 +4,14 @@ using System.ComponentModel.DataAnnotations;
 namespace SupplySync.DTOs.InventoryandWarehouse
 {
 
+    public class IssueInventoryRequestDto
+    {
+        public int WarehouseID { get; set; }
+        public string Item { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public string? Reason { get; set; }
+    }
+
     public class CreateInventoryRequestDto
     {
         [Required]
