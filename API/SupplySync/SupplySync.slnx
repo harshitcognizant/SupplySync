@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SupplySync/SupplySync.API.csproj" />
+  <Project Path="SupplySyncTest/SupplySync.Tests.csproj" Id="fcd7b2fc-3570-4d6c-870a-ab62440cd900" />
+</Solution>

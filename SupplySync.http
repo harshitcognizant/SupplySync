@@ -1,6 +1,0 @@
-@SupplySync_HostAddress = http://localhost:5217
-
-GET {{SupplySync_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
