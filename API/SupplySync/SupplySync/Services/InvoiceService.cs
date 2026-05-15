@@ -2,6 +2,7 @@
 using SupplySync.API.DTOs.Invoice;
 using SupplySync.API.Interfaces;
 using SupplySync.API.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace SupplySync.API.Services;
 
