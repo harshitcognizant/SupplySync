@@ -37,9 +37,11 @@ public class InvoiceRepository : GenericRepository<Invoice>, IInvoiceRepository
             .ToListAsync();
 
     public async Task<bool> IsDuplicateInvoiceAsync(int poId, int grId) =>
-        await _context.Invoices
-            .AnyAsync(i =>
-                i.PurchaseOrderId == poId &&
-                i.GoodsReceiptId == grId &&
-                i.Status != InvoiceStatus.Rejected);
+    await _context.Invoices
+        .Include(i => i.GoodsReceipt)
+        .AnyAsync(i =>
+            i.PurchaseOrderId == poId &&
+            i.GoodsReceiptId == grId &&
+            i.Status != InvoiceStatus.Rejected &&
+            i.GoodsReceipt.Status != GoodsReceiptStatus.Rejected);
 }

@@ -16,12 +16,17 @@ import {
 } from "lucide-react";
 import { goodsReceiptApi } from "../../api/goodsReceiptApi";
 import { type GoodsReceipt } from "../../types";
+import { useSearchParams } from "react-router-dom";
 
 type Tab = "overview" | "orders" | "invoices" | "contracts";
 
 const VendorDashboard = () => {
   const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>("overview");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "overview"
+  );
+  // const [tab, setTab] = useState<Tab>("overview");
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -38,7 +43,10 @@ const VendorDashboard = () => {
     totalAmount: 0,
   });
 
-
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
   // PO detail modal
 
   const [poDetailModal, setPODetailModal] = useState<{
@@ -594,11 +602,19 @@ const VendorDashboard = () => {
             <label className="label">Purchase Order</label>
             <select className="input-field"
               value={invoiceForm.purchaseOrderId}
-              onChange={e => setInvoiceForm({
-                ...invoiceForm,
-                purchaseOrderId: parseInt(e.target.value),
-                goodsReceiptId: 0
-              })}
+              onChange={e => {
+                const selectedPOId = parseInt(e.target.value);
+                const selectedPO = deliveredOrders.find(o => o.id === selectedPOId);
+                const autoTotal = selectedPO
+                  ? selectedPO.items.reduce((sum, i) => sum + i.totalPrice, 0)
+                  : 0;
+                setInvoiceForm({
+                  ...invoiceForm,
+                  purchaseOrderId: selectedPOId,
+                  goodsReceiptId: 0,
+                  totalAmount: autoTotal,
+                });
+              }}
               required>
               <option value={0}>Select delivered PO...</option>
               {deliveredOrders.map(o => (
@@ -628,7 +644,8 @@ const VendorDashboard = () => {
                   <option value={0}>Select goods receipt...</option>
                   {goodsReceipts
                     .filter(gr =>
-                      Number(gr.purchaseOrderId) === Number(invoiceForm.purchaseOrderId))
+                      Number(gr.purchaseOrderId) === Number(invoiceForm.purchaseOrderId) &&
+                      gr.status !== "Rejected")
                     .map(gr => (
                       <option key={gr.id} value={gr.id}>
                         GR #{gr.id} — {gr.grNumber} —{" "}
@@ -650,14 +667,16 @@ const VendorDashboard = () => {
           </div>
           <div>
             <label className="label">Total Amount ($)</label>
-            <input type="number" min={0} step="0.01" className="input-field"
-              placeholder="0.00"
-              value={invoiceForm.totalAmount || ""}
-              onChange={e => setInvoiceForm({
-                ...invoiceForm,
-                totalAmount: parseFloat(e.target.value)
-              })}
-              required />
+            <input
+              type="number"
+              className="input-field bg-gray-100 cursor-not-allowed"
+              value={invoiceForm.totalAmount.toFixed(2)}
+              readOnly
+              disabled
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Auto-calculated from Purchase Order items.
+            </p>
           </div>
 
           <div className="flex gap-3 pt-2">

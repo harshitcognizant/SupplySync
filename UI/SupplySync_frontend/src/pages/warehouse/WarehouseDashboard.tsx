@@ -12,6 +12,7 @@ import {
   Package, Warehouse, ClipboardList, Plus,
   Trash2, ArrowUpDown, AlertTriangle, CheckCircle
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 type Tab = "incoming" | "inventory" | "receipts" | "issues";
 
@@ -22,7 +23,11 @@ interface GRItemForm {
 }
 
 const WarehouseDashboard = () => {
-  const [tab, setTab] = useState<Tab>("incoming");
+  // const [tab, setTab] = useState<Tab>("incoming");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "incoming"
+  );
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [receipts, setReceipts] = useState<GoodsReceipt[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -49,6 +54,11 @@ const WarehouseDashboard = () => {
     remarks: "",
   });
 
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
+
   // Add Inventory Modal
   const [addInventoryModal, setAddInventoryModal] = useState(false);
   const [inventoryForm, setInventoryForm] = useState({
@@ -68,8 +78,10 @@ const WarehouseDashboard = () => {
       ]);
       setOrders(ordersRes.data);
       setReceipts(receiptsRes.data);
-      // Track which POs already have a GR
-      const processed = receiptsRes.data.map((r: GoodsReceipt) => r.purchaseOrderId);
+
+      const processed = receiptsRes.data
+        .filter((r: GoodsReceipt) => r.status !== "Rejected")
+        .map((r: GoodsReceipt) => r.purchaseOrderId);
       setProcessedPOIds(processed);
 
       setInventory(inventoryRes.data);
@@ -164,7 +176,19 @@ const WarehouseDashboard = () => {
     }
   };
 
-  const incomingOrders = orders.filter(o => o.status === "Delivered");
+  // const incomingOrders = orders.filter(o => o.status === "Delivered");
+  const rejectedPOIds = receipts
+    .filter(r => r.status === "Rejected")
+    .map(r => r.purchaseOrderId);
+
+  const acceptedPOIds = receipts
+    .filter(r => r.status !== "Rejected")
+    .map(r => r.purchaseOrderId);
+
+  const incomingOrders = orders.filter(
+    o => o.status === "Delivered" && !acceptedPOIds.includes(o.id)
+  );
+
   const totalStock = inventory.reduce((s, i) => s + i.quantityInStock, 0);
   const lowStockItems = inventory.filter(i => i.quantityInStock <= 10);
 
@@ -502,7 +526,7 @@ const WarehouseDashboard = () => {
           {/* Approval Decision */}
           <div>
             <label className="label">Warehouse Decision</label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {[
                 {
                   value: "Accepted",
@@ -511,13 +535,13 @@ const WarehouseDashboard = () => {
                   color: "border-green-500 bg-green-50 text-green-700",
                   active: grStatus === "Accepted"
                 },
-                {
-                  value: "PartiallyAccepted",
-                  label: "Partial Accept",
-                  desc: "Some goods have issues",
-                  color: "border-yellow-500 bg-yellow-50 text-yellow-700",
-                  active: grStatus === "PartiallyAccepted"
-                },
+                // {
+                //   value: "PartiallyAccepted",
+                //   label: "Partial Accept",
+                //   desc: "Some goods have issues",
+                //   color: "border-yellow-500 bg-yellow-50 text-yellow-700",
+                //   active: grStatus === "PartiallyAccepted"
+                // },
                 {
                   value: "Rejected",
                   label: "Reject All",
@@ -550,8 +574,8 @@ const WarehouseDashboard = () => {
                 : "bg-red-50 text-red-700 border border-red-200"}`}>
             {grStatus === "Accepted" &&
               "✅ All items marked as Good will be added to inventory automatically."}
-            {grStatus === "PartiallyAccepted" &&
-              "⚠️ Items marked as Good will be added to inventory. Damaged items will be reported to Procurement Officer and Vendor."}
+            {/* {grStatus === "PartiallyAccepted" &&
+              "⚠️ Items marked as Good will be added to inventory. Damaged items will be reported to Procurement Officer and Vendor."} */}
             {grStatus === "Rejected" &&
               "❌ No items will be added to inventory. Vendor and Procurement Officer will be notified immediately."}
           </div>
@@ -586,12 +610,11 @@ const WarehouseDashboard = () => {
             <div className="space-y-3">
               {grItems.map((item, index) => (
                 <div key={index}
-                  className={`p-3 rounded-lg border-2 transition-colors
-              ${item.condition === "Good"
-                      ? "border-green-200 bg-green-50"
-                      : "border-red-200 bg-red-50"}`}>
+                  className="p-3 rounded-lg border-2 border-green-200 bg-green-50">
+
                   <div className="grid grid-cols-12 gap-2 items-center">
-                    <div className="col-span-4">
+                    {/* <div className="col-span-4"> */}
+                    <div className="col-span-8">
                       <p className="text-xs text-gray-500 mb-1">Item Name</p>
                       <input className="input-field text-sm bg-white"
                         value={item.itemName}
@@ -599,17 +622,19 @@ const WarehouseDashboard = () => {
                           updateGRItem(index, "itemName", e.target.value)}
                         required />
                     </div>
-                    <div className="col-span-3">
+                    {/* <div className="col-span-3"> */}
+                    <div className="col-span-4"> {/* qty */}
                       <p className="text-xs text-gray-500 mb-1">Received Qty</p>
                       <input type="number" min={0}
                         className="input-field text-sm bg-white"
                         value={item.receivedQuantity}
-                        onChange={e =>
-                          updateGRItem(index, "receivedQuantity",
-                            parseInt(e.target.value))}
-                        required />
+                        // onChange={e =>
+                        //   updateGRItem(index, "receivedQuantity",
+                        //     parseInt(e.target.value))}
+                        // required />
+                        disabled />
                     </div>
-                    <div className="col-span-5">
+                    {/* <div className="col-span-5">
                       <p className="text-xs text-gray-500 mb-1">Condition</p>
                       <div className="grid grid-cols-2 gap-2">
                         <button
@@ -632,12 +657,12 @@ const WarehouseDashboard = () => {
                               : "border-gray-300 text-gray-600"}`}>
                           ❌ Damaged
                         </button>
-                      </div>
-                    </div>
+                      </div> */}
+                    {/* </div> */}
                   </div>
 
                   {/* Per item status indicator */}
-                  <div className="mt-2 text-xs">
+                  {/* <div className="mt-2 text-xs">
                     {item.condition === "Good" ? (
                       <span className="text-green-600 font-medium">
                         ✅ Will be added to inventory
@@ -647,7 +672,7 @@ const WarehouseDashboard = () => {
                         ❌ Will NOT be added to inventory
                       </span>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               ))}
             </div>
@@ -660,18 +685,9 @@ const WarehouseDashboard = () => {
             </p>
             <div className="flex gap-4 text-xs">
               <span className="text-green-600 font-medium">
-                ✅ Good: {grItems.filter(i => i.condition === "Good").length} items
-                ({grItems
-                  .filter(i => i.condition === "Good")
-                  .reduce((s, i) => s + i.receivedQuantity, 0)} units
+                ✅ Items: {grItems.length} (
+                {grItems.reduce((s, i) => s + i.receivedQuantity, 0)} units
                 → inventory)
-              </span>
-              <span className="text-red-600 font-medium">
-                ❌ Damaged: {grItems.filter(i => i.condition === "Damaged").length} items
-                ({grItems
-                  .filter(i => i.condition === "Damaged")
-                  .reduce((s, i) => s + i.receivedQuantity, 0)} units
-                → rejected)
               </span>
             </div>
           </div>
@@ -679,14 +695,11 @@ const WarehouseDashboard = () => {
           <div className="flex gap-3 pt-2">
             <button type="submit"
               className={`flex-1 font-semibold py-2.5 rounded-lg text-white
-                    transition-colors
-          ${grStatus === "Accepted"
+    transition-colors
+    ${grStatus === "Accepted"
                   ? "bg-green-600 hover:bg-green-700"
-                  : grStatus === "PartiallyAccepted"
-                    ? "bg-yellow-500 hover:bg-yellow-600"
-                    : "bg-red-600 hover:bg-red-700"}`}>
+                  : "bg-red-600 hover:bg-red-700"}`}>
               {grStatus === "Accepted" && "✅ Confirm & Add to Inventory"}
-              {grStatus === "PartiallyAccepted" && "⚠️ Confirm Partial Receipt"}
               {grStatus === "Rejected" && "❌ Reject & Notify Vendor"}
             </button>
             <button type="button"

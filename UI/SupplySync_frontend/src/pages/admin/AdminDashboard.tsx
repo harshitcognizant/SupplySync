@@ -13,11 +13,17 @@ import {
   Users, Building2, ShieldCheck, UserPlus,
   ToggleLeft, KeyRound, RefreshCw, TrendingUp
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+
 
 type Tab = "users" | "vendors" | "create-user" | "reports";
 
 const AdminDashboard = () => {
-  const [tab, setTab] = useState<Tab>("users");
+  // const [tab, setTab] = useState<Tab>("users");
+  const [searchParams] = useSearchParams();
+const [tab, setTab] = useState<Tab>(
+  (searchParams.get("tab") as Tab) ?? "users"
+);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [performance, setPerformance] = useState<any[]>([]);
@@ -33,7 +39,10 @@ const AdminDashboard = () => {
     "ProcurementOfficer", "WarehouseManager",
     "FinanceOfficer", "ComplianceOfficer"
   ];
-
+useEffect(() => {
+  const t = searchParams.get("tab") as Tab;
+  if (t) setTab(t);
+}, [searchParams]);
   useEffect(() => { loadUsers(); loadVendors(); loadReports(); }, []);
 
   const loadUsers = async () => {

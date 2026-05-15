@@ -11,20 +11,30 @@ import {
   Receipt, CheckCircle, XCircle, DollarSign,
   Clock, TrendingUp, Eye, CreditCard
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 type Tab = "invoices" | "payments" | "spending";
 
 const FinanceDashboard = () => {
-  const [tab, setTab] = useState<Tab>("invoices");
+  // const [tab, setTab] = useState<Tab>("invoices");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [spending, setSpending] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "invoices"
+  );
 
   // Review Modal
   const [reviewModal, setReviewModal] = useState<{
     open: boolean; invoice: Invoice | null; action: "Approved" | "Rejected"
   }>({ open: false, invoice: null, action: "Approved" });
   const [rejectionReason, setRejectionReason] = useState("");
+
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
 
   // Payment Modal
   const [paymentModal, setPaymentModal] = useState<{

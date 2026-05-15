@@ -13,6 +13,7 @@ public class InvoiceService : IInvoiceService
     private readonly IPurchaseOrderRepository _poRepo;
     private readonly IGoodsReceiptRepository _grRepo;
     private readonly IGenericRepository<Notification> _notificationRepo;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
     public InvoiceService(
@@ -22,6 +23,7 @@ public class InvoiceService : IInvoiceService
         IPurchaseOrderRepository poRepo,
         IGoodsReceiptRepository grRepo,
         IGenericRepository<Notification> notificationRepo,
+        UserManager<ApplicationUser> userManager,
         IMapper mapper)
     {
         _invoiceRepo = invoiceRepo;
@@ -30,6 +32,7 @@ public class InvoiceService : IInvoiceService
         _poRepo = poRepo;
         _grRepo = grRepo;
         _notificationRepo = notificationRepo;
+        _userManager = userManager;
         _mapper = mapper;
     }
 
@@ -92,13 +95,18 @@ public class InvoiceService : IInvoiceService
         await _invoiceRepo.AddAsync(invoice);
 
         // Notify Finance Officer
-        await _notificationRepo.AddAsync(new Notification
+        // Notify all Finance Officers
+        var financeUsers = await _userManager.GetUsersInRoleAsync("FinanceOfficer");
+        foreach (var financeUser in financeUsers)
         {
-            UserId = "finance-broadcast",
-            Message = $"New invoice {invoiceNumber} submitted by {vendor.CompanyName} " +
-                      $"for PO {po.PONumber}. Amount: {dto.TotalAmount:C}",
-            Type = "InvoiceSubmitted"
-        });
+            await _notificationRepo.AddAsync(new Notification
+            {
+                UserId = financeUser.Id,
+                Message = $"New invoice {invoiceNumber} submitted by {vendor.CompanyName} " +
+                          $"for PO {po.PONumber}. Amount: {dto.TotalAmount:C}",
+                Type = "InvoiceSubmitted"
+            });
+        }
 
         await _invoiceRepo.SaveAsync();
 
@@ -123,8 +131,7 @@ public class InvoiceService : IInvoiceService
             return (false, "Cannot approve invoice. " +
                            "Warehouse Manager rejected the delivery.");
 
-        if (gr.Status != GoodsReceiptStatus.Accepted &&
-            gr.Status != GoodsReceiptStatus.PartiallyAccepted)
+        if (gr.Status != GoodsReceiptStatus.Accepted)
             return (false, "Cannot approve invoice. " +
                            "Warehouse Manager has not verified the delivery yet.");
         // ─────────────────────────────────────────────────────
