@@ -55,8 +55,8 @@ public class GoodsReceiptService : IGoodsReceiptService
 
         // ── Prevent duplicate GR for same PO ──────────────────
         var existingGR = await _grRepo.FindAsync(g =>
-            g.PurchaseOrderId == dto.PurchaseOrderId);
-        if (existingGR.Any())
+    g.PurchaseOrderId == dto.PurchaseOrderId);
+        if (existingGR.Any(g => g.Status != GoodsReceiptStatus.Rejected))
             return (false, "Goods Receipt already exists for this Purchase Order. " +
                            "Cannot receive the same PO twice.", null);
 
@@ -84,8 +84,17 @@ public class GoodsReceiptService : IGoodsReceiptService
         await _grRepo.AddAsync(gr);
 
         // Update PO status to Delivered
-        po.Status = POStatus.Delivered;
-        _poRepo.Update(po);
+        // Only keep Delivered if goods were accepted; revert to Sent if rejected
+        if (grStatus != GoodsReceiptStatus.Rejected)
+        {
+            po.Status = POStatus.Delivered;
+            _poRepo.Update(po);
+        }
+        else
+        {
+            po.Status = POStatus.Sent;
+            _poRepo.Update(po);
+        }
 
         // Update inventory for accepted items
         if (grStatus == GoodsReceiptStatus.Accepted ||

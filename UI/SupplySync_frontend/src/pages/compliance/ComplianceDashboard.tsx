@@ -8,7 +8,7 @@ import { inventoryApi } from "../../api/inventoryApi";
 import { reportsApi } from "../../api/reportsApi";
 import {
   type ComplianceCheck, type Vendor, type Contract,
- type PurchaseOrder, type Invoice, type ItemIssue
+  type PurchaseOrder, type Invoice, type ItemIssue
 } from "../../types";
 import StatCard from "../../components/shared/StatCard";
 import Badge from "../../components/shared/Badge";
@@ -20,9 +20,11 @@ import {
   AlertTriangle, FileText, Truck,
   Warehouse, Receipt, Plus
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+
 
 type Tab = "overview" | "vendors" | "contracts" | "orders" |
-           "inventory" | "invoices" | "audit-log";
+  "inventory" | "invoices" | "audit-log";
 
 const entityTypes = [
   "Vendor", "Contract", "PurchaseOrder",
@@ -30,7 +32,11 @@ const entityTypes = [
 ];
 
 const ComplianceDashboard = () => {
-  const [tab, setTab] = useState<Tab>("overview");
+  // const [tab, setTab] = useState<Tab>("overview");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "overview"
+  );
   const [checks, setChecks] = useState<ComplianceCheck[]>([]);
   const [failedChecks, setFailedChecks] = useState<ComplianceCheck[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -51,6 +57,11 @@ const ComplianceDashboard = () => {
   });
 
   useEffect(() => { loadAll(); }, []);
+
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
 
   const loadAll = async () => {
     setLoading(true);
@@ -193,8 +204,8 @@ const ComplianceDashboard = () => {
             className={`flex items-center gap-2 px-3 py-2.5 text-sm font-medium
                         border-b-2 transition-colors duration-150
                         ${tab === key
-                          ? "border-primary-600 text-primary-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+                ? "border-primary-600 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             <Icon className="w-4 h-4" />
             {label}
           </button>
@@ -229,8 +240,8 @@ const ComplianceDashboard = () => {
                         {s.status === "Pass"
                           ? <ShieldCheck className="w-4 h-4 text-green-600" />
                           : s.status === "Fail"
-                          ? <ShieldAlert className="w-4 h-4 text-red-500" />
-                          : <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                            ? <ShieldAlert className="w-4 h-4 text-red-500" />
+                            : <AlertTriangle className="w-4 h-4 text-yellow-500" />
                         }
                         <span className="text-sm font-medium text-gray-700">
                           {s.status}
@@ -291,8 +302,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["Code", "Company", "Email", "Tax No",
                         "License No", "Status", "Action"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -343,8 +354,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["Contract No", "Vendor", "Start", "End",
                         "Status", "Action"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -394,8 +405,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["PO Number", "Vendor", "Contract",
                         "Expected Delivery", "Status", "Action"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -445,8 +456,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["Item", "Qty Issued", "Issued To",
                         "Issue Date", "Remarks"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -488,8 +499,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["Invoice No", "Vendor", "PO", "Amount",
                         "Status", "Submitted", "Action"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -542,8 +553,8 @@ const ComplianceDashboard = () => {
                     <tr>
                       {["Entity Type", "Entity ID", "Status",
                         "Remarks", "Checked At"].map(h => (
-                        <th key={h} className="table-th">{h}</th>
-                      ))}
+                          <th key={h} className="table-th">{h}</th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -619,8 +630,8 @@ const ComplianceDashboard = () => {
                 className={`p-3 rounded-xl border-2 flex items-center
                             gap-2 text-sm font-medium transition-colors
                             ${checkForm.status === "Pass"
-                              ? "border-green-500 bg-green-50 text-green-700"
-                              : "border-gray-200 text-gray-600"}`}>
+                    ? "border-green-500 bg-green-50 text-green-700"
+                    : "border-gray-200 text-gray-600"}`}>
                 <ShieldCheck className="w-4 h-4" />
                 Pass
               </button>
@@ -630,8 +641,8 @@ const ComplianceDashboard = () => {
                 className={`p-3 rounded-xl border-2 flex items-center
                             gap-2 text-sm font-medium transition-colors
                             ${checkForm.status === "Fail"
-                              ? "border-red-500 bg-red-50 text-red-700"
-                              : "border-gray-200 text-gray-600"}`}>
+                    ? "border-red-500 bg-red-50 text-red-700"
+                    : "border-gray-200 text-gray-600"}`}>
                 <ShieldAlert className="w-4 h-4" />
                 Fail
               </button>

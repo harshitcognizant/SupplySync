@@ -3,7 +3,7 @@ import { vendorApi } from "../../api/vendorApi";
 import { contractApi } from "../../api/contractApi";
 import { purchaseOrderApi } from "../../api/purchaseOrderApi";
 import { reportsApi } from "../../api/reportsApi";
-import {type Vendor, type Contract, type PurchaseOrder } from "../../types";
+import { type Vendor, type Contract, type PurchaseOrder } from "../../types";
 import StatCard from "../../components/shared/StatCard";
 import Badge from "../../components/shared/Badge";
 import Modal from "../../components/shared/Modal";
@@ -13,6 +13,7 @@ import {
   Truck, FileText, ShoppingCart, CheckCircle,
   XCircle, Plus, Trash2, Clock, AlertTriangle
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 type Tab = "vendors" | "contracts" | "purchase-orders" | "delays";
 
@@ -23,7 +24,13 @@ interface POItemForm {
 }
 
 const ProcurementDashboard = () => {
-  const [tab, setTab] = useState<Tab>("vendors");
+  // const [tab, setTab] = useState<Tab>("vendors");
+
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<Tab>(
+    (searchParams.get("tab") as Tab) ?? "vendors"
+  );
+
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
@@ -42,6 +49,11 @@ const ProcurementDashboard = () => {
     vendorId: 0, startDate: "", endDate: "",
     paymentTerms: "", deliveryTerms: "", itemPricing: ""
   });
+
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab;
+    if (t) setTab(t);
+  }, [searchParams]);
 
   // PO modal
   const [poModal, setPOModal] = useState(false);
@@ -219,8 +231,8 @@ const ProcurementDashboard = () => {
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium
                         border-b-2 transition-colors duration-150
                         ${tab === key
-                          ? "border-primary-600 text-primary-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+                ? "border-primary-600 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"}`}>
             <Icon className="w-4 h-4" />
             {label}
             {key === "vendors" && pendingVendors.length > 0 && (
@@ -248,7 +260,7 @@ const ProcurementDashboard = () => {
                 <table className="table">
                   <thead className="table-head">
                     <tr>
-                      {["Code","Company","Email","Phone","Tax No","Status","Actions"].map(h => (
+                      {["Code", "Company", "Email", "Phone", "Tax No", "Status", "Actions"].map(h => (
                         <th key={h} className="table-th">{h}</th>
                       ))}
                     </tr>
@@ -317,7 +329,7 @@ const ProcurementDashboard = () => {
                   <table className="table">
                     <thead className="table-head">
                       <tr>
-                        {["Contract No","Vendor","Start","End","Payment Terms","Status","Actions"].map(h => (
+                        {["Contract No", "Vendor", "Start", "End", "Payment Terms", "Status", "Actions"].map(h => (
                           <th key={h} className="table-th">{h}</th>
                         ))}
                       </tr>
@@ -391,7 +403,7 @@ const ProcurementDashboard = () => {
                   <table className="table">
                     <thead className="table-head">
                       <tr>
-                        {["PO Number","Vendor","Contract","Expected Delivery","Items","Status","Actions"].map(h => (
+                        {["PO Number", "Vendor", "Contract", "Expected Delivery", "Items", "Status", "Actions"].map(h => (
                           <th key={h} className="table-th">{h}</th>
                         ))}
                       </tr>
@@ -448,7 +460,7 @@ const ProcurementDashboard = () => {
                 <table className="table">
                   <thead className="table-head">
                     <tr>
-                      {["PO Number","Vendor","Expected Delivery","Status","Days Delayed"].map(h => (
+                      {["PO Number", "Vendor", "Expected Delivery", "Status", "Days Delayed"].map(h => (
                         <th key={h} className="table-th">{h}</th>
                       ))}
                     </tr>
