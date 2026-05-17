@@ -35,7 +35,8 @@ builder.Services.AddScoped<IGenericRepository<Payment>, GenericRepository<Paymen
 builder.Services.AddScoped<IGenericRepository<Notification>, GenericRepository<Notification>>();
 
 
-
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
